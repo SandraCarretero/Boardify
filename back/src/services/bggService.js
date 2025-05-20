@@ -1,5 +1,6 @@
 const axios = require('axios');
 const xml2js = require('xml2js');
+const User = require('../models/userModel');
 
 const parser = new xml2js.Parser({ explicitArray: false });
 
