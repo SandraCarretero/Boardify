@@ -21,7 +21,7 @@ exports.addGameToUser = async (userId, game) => {
   };
 };
 
-exports.getUserGames = async (userId) => {
+exports.getUserGames = async userId => {
   const user = await User.findById(userId);
   return user.games;
 };
@@ -39,3 +39,16 @@ exports.removeGameFromUser = async (userId, gameId) => {
   await user.save();
 };
 
+exports.addFriend = async (userId, friendId) => {
+  await User.findByIdAndUpdate(userId, { $addToSet: { friends: friendId } });
+  await User.findByIdAndUpdate(friendId, { $addToSet: { friends: userId } });
+};
+
+exports.calculateStats = async userId => {
+  const [totalGames, wins] = await Promise.all([
+    GameSession.countDocuments({ 'players.user': userId }),
+    GameSession.countDocuments({ 'players.user': userId, 'players.won': true })
+  ]);
+
+  return { totalGames, wins, ratio: (wins / totalGames).toFixed(2) };
+};

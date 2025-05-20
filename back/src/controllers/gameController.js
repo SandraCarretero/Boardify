@@ -57,3 +57,12 @@ exports.getUserSessions = async (req, res) => {
     });
   }
 };
+
+exports.getTimeline = async (req, res) => {
+  try {
+    const sessions = await bggService.getFriendsSessions(req.userId);
+    res.json(sessions);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

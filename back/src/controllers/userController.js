@@ -34,3 +34,22 @@ exports.removeGameFromUser = async (req, res) => {
     res.status(400).json({ error: err.message });
   }
 };
+
+exports.addFriend = async (req, res) => {
+  try {
+    const { friendId } = req.body;
+    await userService.addFriend(req.userId, friendId);
+    res.status(200).json({ success: true });
+  } catch (error) {
+    res.status(400).json({ error: error.message });
+  }
+};
+
+exports.getUserStats = async (req, res) => {
+  try {
+    const stats = await userService.calculateStats(req.params.userId);
+    res.json(stats);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+};

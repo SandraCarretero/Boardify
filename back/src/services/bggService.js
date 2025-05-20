@@ -89,3 +89,15 @@ exports.getUserSessions = async userId => {
     throw error;
   }
 };
+
+exports.getFriendsSessions = async userId => {
+  const user = await User.findById(userId).select('friends');
+  return GameSession.find({
+    $or: [
+      { creator: { $in: user.friends } },
+      { 'players.user': { $in: user.friends } }
+    ]
+  })
+    .sort({ date: -1 })
+    .limit(20);
+};
