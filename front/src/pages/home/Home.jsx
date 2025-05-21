@@ -1,5 +1,5 @@
 import GameSessionCard from '../../components/gameSessions/GameSessions';
-import { GameSessions, HomeHeader, LogoContainer, Logo } from './home.styled';
+import { GameSessions, HomeHeader, LogoContainer, Logo, TextLogo } from './home.styled';
 import { faBell as faBellRegular } from '@fortawesome/free-regular-svg-icons';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 
@@ -12,7 +12,7 @@ const Home = () => {
             src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcQHSLu5GdCt2cUnw_z4EstbHTZi5eIrV6XufA&s"
             alt=""
           />
-          <span>Boardify</span>
+          <TextLogo>Boardify</TextLogo>
         </LogoContainer>
         <FontAwesomeIcon icon={faBellRegular} />
       </HomeHeader>
@@ -27,7 +27,8 @@ const Home = () => {
           players={[
             { name: 'Carlos', avatar: '' },
             { name: 'Ana', avatar: '' },
-            { name: 'Luis', avatar: '' }
+            { name: 'Luis', avatar: '' },
+            { name: 'Dani', avatar: '' }
           ]}
         />
         <GameSessionCard

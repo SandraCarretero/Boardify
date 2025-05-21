@@ -7,6 +7,7 @@ export const GlobalStyles = createGlobalStyle`
     --color-shadow:rgba(84, 106, 131, 0.49);
     --color-background: #F2F5FA;
     --color-white: #ffffff;
+    --color-danger:rgb(255, 0, 0);
   }
 
   *,
@@ -27,6 +28,18 @@ export const GlobalStyles = createGlobalStyle`
     padding-inline: 20px;
     padding-block: 20px 120px;
     min-height: 100dvh;
+  }
+
+  body.scroll-page {
+    max-height: 100dvh;
+    overflow: hidden;
+  }
+
+  body.auth-page {
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+    padding-bottom: 0;
   }
 
   a{

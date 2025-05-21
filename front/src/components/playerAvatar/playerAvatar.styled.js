@@ -1,9 +1,17 @@
 import styled from 'styled-components';
 
 export const AvatarWrapper = styled.div`
-  width: ${props => (props.$isLarge ? '50px' : '32px')};
+  width: ${props => {
+    if (props.$isProfile) return '80px';
+    if (props.$isLarge) return '34px';
+    return '32px';
+  }};
   aspect-ratio: 1;
-  font-size: ${props => (props.$isLarge ? '18px' : '16px')};
+  font-size: ${props => {
+    if (props.$isProfile) return '25px';
+    if (props.$isLarge) return '14px';
+    return '16px';
+  }};
   border-radius: 50%;
   overflow: hidden;
   background-color: #ccc;

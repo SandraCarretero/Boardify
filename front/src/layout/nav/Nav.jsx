@@ -17,7 +17,7 @@ const Nav = () => {
             <FontAwesomeIcon icon={faHome} />
           </div>
         </NavItem>
-        <NavItem to="/find">
+        <NavItem to="/search">
           <div>
             <FontAwesomeIcon icon={faSearch} />
           </div>

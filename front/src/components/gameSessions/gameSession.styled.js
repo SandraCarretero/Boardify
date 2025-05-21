@@ -16,12 +16,12 @@ export const Card = styled.div`
 export const Header = styled.div`
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 6px;
 `;
 
 export const HostName = styled.span`
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 13px;
 `;
 
 export const Content = styled.div`
@@ -35,8 +35,8 @@ export const GameInfoLeft = styled.div`
 `;
 
 export const GameImage = styled.img`
-  width: 80px;
-  height: 80px;
+  width: 65px;
+  aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px;
 `;
@@ -65,7 +65,7 @@ export const Players = styled.div`
   display: flex;
   align-items: flex-end;
   position: relative;
-  margin-left: auto; 
+  margin-left: auto;
 `;
 
 export const ExtraPlayers = styled.div`

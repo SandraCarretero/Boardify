@@ -28,7 +28,7 @@ const GameSessionCard = ({
   return (
     <Card>
       <Header>
-        <PlayerAvatar avatar={hostAvatar} name={hostName} isLarge={true} />
+        <PlayerAvatar avatar={hostAvatar} name={hostName} isLarge={true}/>
         <HostName>{hostName}</HostName>
       </Header>
 
@@ -61,7 +61,6 @@ const GameSessionCard = ({
               avatar={player.avatar}
               name={player.name}
               index={index}
-              isLarge={false}
             />
           ))}
 
