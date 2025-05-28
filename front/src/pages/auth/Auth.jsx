@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom'
 import {
   Container,
   Title,
@@ -10,12 +11,13 @@ import AuthForm from '../../components/authForm/AuthForm';
 
 const Auth = () => {
   const [mode, setMode] = useState('login');
+  const navigate = useNavigate(); 
 
   return (
     <Container>
       <Title>{mode === 'login' ? 'Inicia sesión ' : 'Regístrate'}</Title>
       <FormWrapper>
-        <AuthForm mode={mode} />
+        <AuthForm mode={mode} onSuccess={() => navigate('/')} />
       </FormWrapper>
 
       <SwitchText>

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import PlayerAvatar from '../../components/playerAvatar/PlayerAvatar';
 import GameSessionCard from '../../components/gameSessions/GameSessions';
-import BoardGameCard from '../../components/boardGameCard/BoardGameCard'; // si existe
+import BoardGameCard from '../../components/boardGameCard/BoardGameCard';
+
 import {
   AddIcon,
   AvatarWrapper,

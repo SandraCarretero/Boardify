@@ -17,6 +17,10 @@ exports.register = async ({ username, email, password }) => {
   const existingUser = await User.findOne({ email });
   if (existingUser) throw new AppError('El email ya está registrado', 400);
 
+  const existingUsername = await User.findOne({ username });
+  if (existingUsername)
+    throw new AppError('El nombre de usuario ya está en uso', 400);
+
   const user = new User({ username, email, password });
   await user.save();
 
@@ -52,6 +56,16 @@ exports.login = async ({ email, password }) => {
   const token = jwt.sign(payload, JWT_SECRET, { expiresIn: '7d' });
 
   return { token, username: user.username };
+};
+
+exports.getMe = async userId => {
+  const user = await User.findById(userId).select('-password'); // excluye password
+
+  if (!user) {
+    throw new Error('Usuario no encontrado');
+  }
+
+  return user;
 };
 
 exports.deleteUserById = async userId => {

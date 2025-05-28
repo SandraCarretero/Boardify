@@ -5,12 +5,13 @@ const userSchema = new mongoose.Schema({
   username: {
     type: String,
     required: [true, 'El nombre es obligatorio'],
-    trim: true
+    trim: true,
+    unique: [true, 'Nombre de usuario en uso']
   },
   email: {
     type: String,
     required: [true, 'El email es obligatorio'],
-    unique: true,
+    unique: [true, 'Email en uso'],
     trim: true,
     lowercase: true,
     match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, 'Email inválido']
@@ -26,7 +27,8 @@ const userSchema = new mongoose.Schema({
       name: String,
       addedAt: Date
     }
-  ]
+  ],
+  friends: [{ name: String }]
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword) {

@@ -17,6 +17,7 @@ export const HomeHeader = styled.div`
     border-radius: 50%;
     padding: 12px;
     color: var(--color-secondary);
+    cursor: pointer;
   }
 `;
 

@@ -1,10 +1,19 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useMutation } from '@tanstack/react-query';
 import InputForm from '../inputForm/InputForm';
 import { Button, Form, PasswordCriteria } from './authForm.styled';
+import authService from '../../services/authService';
 
-const AuthForm = ({ mode }) => {
+const AuthForm = ({ mode, onSuccess }) => {
   const isLogin = mode === 'login';
-  const [errors, setErrors] = useState({});
+
+  const [form, setForm] = useState({
+    username: '',
+    email: '',
+    password: '',
+    confirmpassword: ''
+  });
+
   const [passwordCriteria, setPasswordCriteria] = useState({
     hasUpperCase: false,
     hasLowerCase: false,
@@ -13,57 +22,7 @@ const AuthForm = ({ mode }) => {
     minLength: false
   });
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    name: '',
-    confirmpassword: ''
-  });
-
-  const handleChange = e => {
-    const { name, value } = e.target;
-
-    setFormData(prev => ({
-      ...prev,
-      [name]: value
-    }));
-
-    if (name === 'password') {
-      validatePasswordCriteria(value);
-    }
-    setErrors(prevErrors => {
-      const newErrors = { ...prevErrors };
-
-      if (name === 'email') {
-        if (/\S+@\S+\.\S+/.test(value)) delete newErrors.email;
-      }
-
-      if (name === 'name') {
-        if (value.trim() !== '') delete newErrors.name;
-      }
-
-      if (name === 'confirmpassword') {
-        if (value === formData.password) delete newErrors.confirmpassword;
-      }
-
-      if (name === 'password') {
-        const valid =
-          /[A-Z]/.test(value) &&
-          /[a-z]/.test(value) &&
-          /\d/.test(value) &&
-          /[\W_]/.test(value) &&
-          value.length >= 6;
-
-        if (valid) delete newErrors.password;
-
-        if (formData.confirmpassword && formData.confirmpassword === value) {
-          delete newErrors.confirmpassword;
-        }
-      }
-
-      return newErrors;
-    });
-  };
+  const [errors, setErrors] = useState({});
 
   const validatePasswordCriteria = password => {
     setPasswordCriteria({
@@ -75,65 +34,141 @@ const AuthForm = ({ mode }) => {
     });
   };
 
-  const validate = () => {
+  const validateForm = () => {
     const newErrors = {};
 
-    if (!formData.email) {
-      newErrors.email = 'El email es obligatorio.';
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = 'El email no es válido.';
+    if (!form.email || !/\S+@\S+\.\S+/.test(form.email)) {
+      newErrors.email = 'Introduce un email válido.';
     }
 
-    const { hasUpperCase, hasLowerCase, hasNumber, hasSymbol, minLength } =
-      passwordCriteria;
-
-    if (!formData.password) {
-      newErrors.password = 'La contraseña es obligatoria.';
-    } else if (
-      !hasUpperCase ||
-      !hasLowerCase ||
-      !hasNumber ||
-      !hasSymbol ||
-      !minLength
-    ) {
-      newErrors.password = 'La contraseña no cumple los requisitos.';
-    }
-
-    if (mode === 'register') {
-      if (!formData.name) {
-        newErrors.name = 'El nombre es obligatorio.';
+    if (!form.password) {
+      newErrors.password = 'Introduce una contraseña.';
+    } else {
+      const { hasUpperCase, hasLowerCase, hasNumber, hasSymbol, minLength } =
+        passwordCriteria;
+      if (
+        !hasUpperCase ||
+        !hasLowerCase ||
+        !hasNumber ||
+        !hasSymbol ||
+        !minLength
+      ) {
+        newErrors.password = 'La contraseña no cumple los requisitos.';
       }
+    }
 
-      if (!formData.confirmpassword) {
+    if (!isLogin) {
+      if (!form.username) {
+        newErrors.username = 'El nombre de usuario es obligatorio.';
+      }
+      if (!form.confirmpassword) {
         newErrors.confirmpassword = 'Confirma tu contraseña.';
-      } else if (formData.password !== formData.confirmpassword) {
+      } else if (form.password !== form.confirmpassword) {
         newErrors.confirmpassword = 'Las contraseñas no coinciden.';
       }
     }
 
-    return newErrors;
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const mutation = useMutation({
+    mutationFn: async data => {
+      return isLogin
+        ? authService.login({ email: data.email, password: data.password })
+        : authService.register({
+            username: data.username,
+            email: data.email,
+            password: data.password
+          });
+    },
+    onSuccess: async (res, variables) => {
+      console.log('Respuesta del servidor:', res);
+      console.log(`${isLogin ? 'Login' : 'Registro'} exitoso`, res.data);
+      
+      // Limpiar errores del servidor al tener éxito
+      setErrors({});
+      setForm({ username: '', email: '', password: '', confirmpassword: '' });
+
+      if (!isLogin) {
+        try {
+          const loginRes = await authService.login({
+            email: variables.email,
+            password: variables.password
+          });
+          console.log('Login automático exitoso', loginRes.data);
+
+          localStorage.setItem('token', loginRes.data.token);
+          if (onSuccess) onSuccess(loginRes.data);
+          setForm({
+            username: '',
+            email: '',
+            password: '',
+            confirmpassword: ''
+          });
+        } catch (loginError) {
+          console.error('Error al hacer login automático:', loginError);
+        }
+      } else {
+        localStorage.setItem('token', res.data.token);
+        if (onSuccess) onSuccess(res.data);
+      }
+    },
+    onError: err => {
+      console.error('Error:', err.response?.data || err.message);
+      
+      // Manejar errores específicos del servidor
+      const errorMessage = err.response?.data?.message || err.message;
+      const newErrors = {};
+      
+      if (errorMessage === 'El email ya está registrado') {
+        newErrors.email = errorMessage;
+      } else if (errorMessage === 'El nombre de usuario ya está en uso') {
+        newErrors.username = errorMessage;
+      } else if (errorMessage === 'Usuario no encontrado') {
+        newErrors.email = errorMessage;
+      } else if (errorMessage === 'Credenciales inválidas') {
+        newErrors.password = errorMessage;
+      } else {
+        // Error genérico
+        newErrors.general = errorMessage;
+      }
+      
+      setErrors(newErrors);
+    }
+  });
+
+  const handleChange = e => {
+    const { name, value } = e.target;
+    setForm(prev => ({ ...prev, [name]: value }));
+
+    // Limpiar error específico cuando el usuario empieza a escribir
+    if (errors[name]) {
+      setErrors(prev => ({ ...prev, [name]: '' }));
+    }
+
+    if (name === 'password') {
+      validatePasswordCriteria(value);
+    }
   };
 
   const handleSubmit = e => {
     e.preventDefault();
-    const validationErrors = validate();
-    setErrors(validationErrors);
-
-    if (Object.keys(validationErrors).length === 0) {
-      console.log('Formulario válido', formData);
+    if (validateForm()) {
+      mutation.mutate(form);
     }
   };
 
   return (
     <Form onSubmit={handleSubmit}>
-      {mode === 'register' && (
+      {!isLogin && (
         <InputForm
-          label="Nombre"
-          name="name"
+          label="Usuario"
+          name="username"
           placeholder="Escribe tu nombre"
-          value={formData.name}
+          value={form.username}
           onChange={handleChange}
-          error={errors.name}
+          error={errors.username}
         />
       )}
 
@@ -142,7 +177,7 @@ const AuthForm = ({ mode }) => {
         name="email"
         type="email"
         placeholder="Escribe tu email"
-        value={formData.email}
+        value={form.email}
         onChange={handleChange}
         error={errors.email}
       />
@@ -152,45 +187,49 @@ const AuthForm = ({ mode }) => {
         name="password"
         type="password"
         placeholder="Escribe tu contraseña"
-        value={formData.password}
+        value={form.password}
         onChange={handleChange}
         error={errors.password}
       />
 
-      {/* ✅ Mostrar requisitos dinámicos */}
-      {!isLogin && formData.password && (
+      {!isLogin && form.password && (
         <PasswordCriteria>
-          <p style={{ color: passwordCriteria.hasUpperCase ? 'green' : 'red' }}>
-            • Al menos una mayúscula
-          </p>
-          <p style={{ color: passwordCriteria.hasLowerCase ? 'green' : 'red' }}>
-            • Al menos una minúscula
-          </p>
-          <p style={{ color: passwordCriteria.hasNumber ? 'green' : 'red' }}>
-            • Al menos un número
-          </p>
-          <p style={{ color: passwordCriteria.hasSymbol ? 'green' : 'red' }}>
-            • Al menos un símbolo
-          </p>
-          <p style={{ color: passwordCriteria.minLength ? 'green' : 'red' }}>
-            • Mínimo 6 caracteres
-          </p>
+          {!passwordCriteria.hasUpperCase && <p>• Al menos una mayúscula</p>}
+          {!passwordCriteria.hasLowerCase && <p>• Al menos una minúscula</p>}
+          {!passwordCriteria.hasNumber && <p>• Al menos un número</p>}
+          {!passwordCriteria.hasSymbol && <p>• Al menos un símbolo</p>}
+          {!passwordCriteria.minLength && <p>• Mínimo 6 caracteres</p>}
         </PasswordCriteria>
       )}
 
-      {mode === 'register' && (
+      {!isLogin && (
         <InputForm
           label="Confirmar contraseña"
           name="confirmpassword"
           type="password"
           placeholder="Confirma tu contraseña"
-          value={formData.confirmpassword}
+          value={form.confirmpassword}
           onChange={handleChange}
           error={errors.confirmpassword}
         />
       )}
 
-      <Button type="submit">{isLogin ? 'Entrar' : 'Crear cuenta'}</Button>
+      {/* Mostrar error general si existe */}
+      {errors.general && (
+        <div style={{ color: 'red', marginBottom: '1rem', textAlign: 'center' }}>
+          {errors.general}
+        </div>
+      )}
+
+      <Button type="submit" disabled={mutation.isPending}>
+        {mutation.isPending
+          ? isLogin
+            ? 'Entrando...'
+            : 'Registrando...'
+          : isLogin
+          ? 'Entrar'
+          : 'Crear cuenta'}
+      </Button>
     </Form>
   );
 };

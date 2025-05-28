@@ -7,6 +7,7 @@ import Profile from '../pages/profile/Profile';
 import { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Auth from '../pages/auth/Auth';
+import PrivateRoute from './PrivateRoute';
 
 const Router = () => {
   const location = useLocation();
@@ -26,14 +27,17 @@ const Router = () => {
       document.body.classList.remove('auth-page');
     }
   }, [location.pathname]);
+
   return (
     <Routes>
       <Route path="/auth" element={<Auth />} />
-      <Route path="/" element={<Layout />}>
-        <Route path="/" element={<Home />} />
-        <Route path="/search" element={<Search />} />
-        <Route path="/stats" element={<Stats />} />
-        <Route path="/profile" element={<Profile />} />
+      <Route element={<PrivateRoute />}>
+        <Route path="/" element={<Layout />}>
+          <Route path="" element={<Home />} />
+          <Route path="/search" element={<Search />} />
+          <Route path="/stats" element={<Stats />} />
+          <Route path="/profile" element={<Profile />} />
+        </Route>
       </Route>
     </Routes>
   );

@@ -26,6 +26,15 @@ exports.login = async (req, res) => {
     res.status(401).json({ error: err.message });
   }
 };
+exports.getMe = async (req, res) => {
+  try {
+    const user = await authService.getMe(req.user._id);
+    res.status(200).json(user);
+  } catch (error) {
+    console.error('Error en getMe:', error);
+    res.status(500).json({ message: 'Error al obtener el usuario' });
+  }
+};
 
 exports.verifyToken = (req, res) => {
   res.json({ valid: true });
